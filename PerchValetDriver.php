@@ -12,9 +12,11 @@ class PerchValetDriver extends BasicValetDriver
      */
     public function serves($sitePath, $siteName, $uri)
     {
-        if (strpos($uri, 'admin') == false || strpos($uri, 'perch') == false) {
-          return file_exists($sitePath.'/admin/core/lib/Perch.class.php');
+        if (strpos($uri, 'admin') !== false || strpos($uri, 'perch') !== false) {
+          return false;
         }
+
+        return file_exists($sitePath.'/admin/core/lib/Perch.class.php');
     }
 
     /**
@@ -45,12 +47,12 @@ class PerchValetDriver extends BasicValetDriver
      */
     private function forceCleanURL($uri)
     {
-        if (strpos($uri, 'admin') == false || strpos($uri, 'perch') == false) {
-            if (strpos($uri, '.php') == false ) {
-              return $uri . '.php';
-            }
+        if (strpos($uri, 'admin') !== false || strpos($uri, 'perch') !== false) {
+          return $uri;
         }
 
-        return $uri;
+        if (strpos($uri, '.php') == false ) {
+          return $uri . '.php';
+        }
     }
 }
