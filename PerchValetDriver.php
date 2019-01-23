@@ -1,9 +1,10 @@
 <?php
 
-class PerchValetDriver extends BasicValetDriver
+class PerchValetDriver extends ValetDriver
 {
     /**
-     * Determine if the driver serves the request.
+     * Determine if the driver serves the request. If it does set
+     * server name before returning true, otherwise return false
      *
      * @param  string  $sitePath
      * @param  string  $siteName
@@ -12,13 +13,30 @@ class PerchValetDriver extends BasicValetDriver
      */
     public function serves($sitePath, $siteName, $uri)
     {
-        if (strpos($uri, 'admin') !== false || strpos($uri, 'perch') !== false) {
-          return false;
-        }
+      if (strpos($uri, 'admin') !== false || strpos($uri, 'perch') !== false) {
+        return false;
+      }
 
-        return file_exists($sitePath.'/admin/core/lib/Perch.class.php');
+      return file_exists($sitePath.'/admin/core/lib/Perch.class.php');
     }
-
+    /**
+     * Determine if the incoming request is for a static file.
+     *
+     * @param  string  $sitePath
+     * @param  string  $siteName
+     * @param  string  $uri
+     * @return string|false
+     */
+    public function isStaticFile($sitePath, $siteName, $uri)
+    {
+        if (file_exists($staticFilePath = $sitePath.'/public'.$uri)) {
+            return $staticFilePath;
+        } elseif ($this->isActualFile($staticFilePath = $sitePath.$uri)) {
+            return $staticFilePath;
+        }
+        
+        return false;
+    }
     /**
      * Get the fully resolved path to the application's front controller.
      *
@@ -29,30 +47,54 @@ class PerchValetDriver extends BasicValetDriver
      */
     public function frontControllerPath($sitePath, $siteName, $uri)
     {
+
         $_SERVER['PHP_SELF']    = $uri;
         $_SERVER['SERVER_ADDR'] = '127.0.0.1';
         $_SERVER['SERVER_NAME'] = $_SERVER['HTTP_HOST'];
         $_SERVER['REQUEST_URI'] = $uri;
-
-        return parent::frontControllerPath(
-            $sitePath, $siteName, $this->forceCleanURL($uri)
-        );
+        
+        $dynamicCandidates = [
+            $this->asActualFile($sitePath, $uri),
+            $this->asPhpIndexFileInDirectory($sitePath, $uri),
+            
+        ];
+        
+        foreach ($dynamicCandidates as $candidate) {
+            if ($this->isActualFile($candidate)) {
+                $_SERVER['SCRIPT_FILENAME'] = $candidate;
+                $_SERVER['SCRIPT_NAME'] = str_replace($sitePath, '', $candidate);
+                $_SERVER['DOCUMENT_ROOT'] = $sitePath;
+                return $candidate;
+            }
+        }
+        
+        
     }
-
     /**
-     * Rewrite cleaner URL
+     * Concatenate the site path and URI as a single file name.
      *
-     * @param  string $uri
+     * @param  string  $sitePath
+     * @param  string  $uri
      * @return string
      */
-    private function forceCleanURL($uri)
+    protected function asActualFile($sitePath, $uri)
     {
-        if (strpos($uri, 'admin') !== false || strpos($uri, 'perch') !== false) {
-          return $uri;
-        }
+      if (strpos($uri, '.php') == false ) {
+        return $sitePath.$uri . '.php';
+      }
 
-        if (strpos($uri, '.php') == false ) {
-          return $uri . '.php';
-        }
+      return $sitePath.$uri;
+    }
+    /**
+     * Format the site path and URI with a trailing "index.php".
+     *
+     * @param  string  $sitePath
+     * @param  string  $uri
+     * @return string
+     */
+    protected function asPhpIndexFileInDirectory($sitePath, $uri)
+    {
+        
+        return $sitePath.rtrim($uri, '/').'/index.php';
     }
 }
