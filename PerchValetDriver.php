@@ -2,6 +2,8 @@
 
 class PerchValetDriver extends ValetDriver
 {
+    private $folders = ['admin', 'perch', 'site_admin'];
+
     /**
      * Determine if the driver serves the request. If it does set
      * server name before returning true, otherwise return false
@@ -13,12 +15,17 @@ class PerchValetDriver extends ValetDriver
      */
     public function serves($sitePath, $siteName, $uri)
     {
-      if (strpos($uri, 'admin') !== false || strpos($uri, 'perch') !== false) {
-        return false;
+      $folder = $this->getFolder($sitePath); 
+
+      var_dump($folder);
+
+      if ($folder && strpos($uri, $folder) === false) {
+        return file_exists($sitePath.'/admin/core/lib/Perch.class.php');
       }
 
-      return file_exists($sitePath.'/admin/core/lib/Perch.class.php');
+      return false;
     }
+
     /**
      * Determine if the incoming request is for a static file.
      *
@@ -96,5 +103,24 @@ class PerchValetDriver extends ValetDriver
     {
         
         return $sitePath.rtrim($uri, '/').'/index.php';
+    }
+    /**
+     * Get active folder of project
+     *
+     * @param  string  $sitePath
+     * @return string
+     */
+    protected function getFolder($sitePath) {
+      $activeFolder = false;
+
+      foreach ($this->folders as $folder) {
+        $isDirectory = is_dir($sitePath. '/' . $folder . '/core/runway'); ;
+        if ($isDirectory) {
+          $activeFolder = $folder;
+          break;
+        }
+      }
+
+      return $activeFolder;
     }
 }
