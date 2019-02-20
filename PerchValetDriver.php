@@ -17,8 +17,6 @@ class PerchValetDriver extends ValetDriver
     {
       $folder = $this->getFolder($sitePath); 
 
-      var_dump($folder);
-
       if ($folder && strpos($uri, $folder) === false) {
         return file_exists($sitePath.'/admin/core/lib/Perch.class.php');
       }
