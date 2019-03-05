@@ -15,7 +15,7 @@ class PerchValetDriver extends ValetDriver
      */
     public function serves($sitePath, $siteName, $uri)
     {
-      $folder = $this->getFolder($sitePath); 
+      $folder = $this->getFolder($sitePath);
 
       if ($folder && strpos($uri, $folder) === false) {
         return file_exists($sitePath.'/admin/core/lib/Perch.class.php');
@@ -112,7 +112,7 @@ class PerchValetDriver extends ValetDriver
       $activeFolder = false;
 
       foreach ($this->folders as $folder) {
-        $isDirectory = is_dir($sitePath. '/' . $folder . '/core/runway'); ;
+        $isDirectory = is_dir($sitePath. '/' . $folder . '/core'); ;
         if ($isDirectory) {
           $activeFolder = $folder;
           break;
