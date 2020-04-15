@@ -2,7 +2,7 @@
 
 class PerchValetDriver extends ValetDriver
 {
-    private $folders = ['admin', 'perch', 'site_admin'];
+    private $folders = ['admin', 'perch', 'site_admin', 'cms'];
 
     /**
      * Determine if the driver serves the request. If it does set
@@ -16,12 +16,7 @@ class PerchValetDriver extends ValetDriver
     public function serves($sitePath, $siteName, $uri)
     {
       $folder = $this->getFolder($sitePath);
-
-      if ($folder && strpos($uri, $folder) === false) {
-        return file_exists($sitePath.'/admin/core/lib/Perch.class.php');
-      }
-
-      return false;
+      return $folder && strpos($uri, $folder) === false;
     }
 
     /**
